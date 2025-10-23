@@ -3,7 +3,7 @@
  Miniprojeto: Parar cronômetro exatamente em 5000ms
  Autor: Anderson de Souza Santos
  Data: 16/10/2025
- Controles: 1 clique = Inicia | 2º clique = Para | LED pisca = VITÓRIA!
+ Controles: 1 clique = Inicia | 2º clique = Para | LED verde pisca = VITÓRIA! | LED vermelho = ERRO
  Alvo: 5000ms (5.000)
 */
 
@@ -39,7 +39,8 @@ unsigned char tabela[10] = {
 
 // Pinos e Configurações Gerais
 #define BOTAO_PIN 8
-#define LED_PIN 13
+#define LED_VITORIA_PIN 13
+#define LED_ERRO_PIN 11
 #define BUZZER_PIN 12
 
 // Tempo-alvo (em ms)
@@ -81,10 +82,12 @@ void setup() {
   DDRC = 0x0F; // 4 bits inferiores da Porta C = seleção dos displays
 
   pinMode(BOTAO_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
+  pinMode(LED_VITORIA_PIN, OUTPUT);
+  pinMode(LED_ERRO_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
 
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_VITORIA_PIN, LOW);
+  digitalWrite(LED_ERRO_PIN, LOW);
   digitalWrite(BUZZER_PIN, LOW);
 
   resetDisplays();
@@ -101,12 +104,14 @@ void loop() {
     if (verificaVitoria()) {
       sinalizaVitoria();
     } else {
+      digitalWrite(LED_ERRO_PIN, HIGH); // Acende LED vermelho
       for (int i = 0; i < 300; i++) { // Mostra "FAIL" por ~1 segundo
         mostraFail();
       }
       tone(BUZZER_PIN, 200, 400); // Som grave de erro
       delay(500);
       noTone(BUZZER_PIN);
+      digitalWrite(LED_ERRO_PIN, LOW); // Apaga LED vermelho
     }
     resetCronometro();
     estado = 0;
@@ -127,7 +132,8 @@ void verificaBotao() {
       startTime = millis();
       elapsedTime = 0;
       estado = 1;
-      digitalWrite(LED_PIN, LOW);
+      digitalWrite(LED_VITORIA_PIN, LOW);
+      digitalWrite(LED_ERRO_PIN, LOW);
       tone(BUZZER_PIN, 1000, 150); // som curto de início
     } else if (estado == 1) {
       // Para o cronômetro
@@ -183,9 +189,9 @@ void sinalizaVitoria() {
     }
 
     tone(BUZZER_PIN, melody[thisNote], noteDuration * 0.9);
-    digitalWrite(LED_PIN, HIGH);
+    digitalWrite(LED_VITORIA_PIN, HIGH);
     delay(noteDuration / 2);
-    digitalWrite(LED_PIN, LOW);
+    digitalWrite(LED_VITORIA_PIN, LOW);
     delay(noteDuration / 2);
     noTone(BUZZER_PIN);
   }
@@ -228,7 +234,8 @@ void mostraFail() {
 void resetCronometro() {
   unidades = dezenas = centenas = milhares = 0;
   elapsedTime = 0;
-  digitalWrite(LED_PIN, LOW);
+  digitalWrite(LED_VITORIA_PIN, LOW);
+  digitalWrite(LED_ERRO_PIN, LOW);
   noTone(BUZZER_PIN);
 }
 
